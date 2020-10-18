@@ -1,9 +1,9 @@
 package com.reactivebank.accounts
 
-import java.util.UUID
+import scala.util.Random
 
 object AccountNumber {
-  def apply(): AccountNumber = AccountNumber(UUID.randomUUID())
+  def apply(): AccountNumber = AccountNumber(Random.nextLong())
 }
 
 case class AccountNumber(value: Long)
@@ -15,7 +15,7 @@ case class CreditAmount(accountNumber: Long, amount: Double)
 
 case class Account(
                     id: AccountNumber,
-                    server: AccountHolder,
+                    accountHolder: AccountHolder,
                     balance: Double
 ) extends SerializableMessage {
 

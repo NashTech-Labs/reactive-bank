@@ -42,12 +42,12 @@ object Client extends App with AccountJsonFormats {
         openAccount(args(1))
       }
     case "credit" =>
-      runIf(args.length == 4) {
-        creditAmount(args(1), args(2), args(3))
+      runIf(args.length == 3) {
+        creditAmount(args(1).toLong, args(2).toDouble)
       }
     case "find" =>
-      runIf(args.length == 2) {
-        findAccount(args(1))
+      runIf(args.length == 1) {
+        findAccount(args(1).toLong)
       }
   }
 

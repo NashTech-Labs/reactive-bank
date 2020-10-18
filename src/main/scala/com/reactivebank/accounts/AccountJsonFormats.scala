@@ -1,17 +1,15 @@
 package com.reactivebank.accounts
 
-import java.util.UUID
-
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsString, JsValue, JsonFormat}
 
 trait AccountJsonFormats extends SprayJsonSupport with DefaultJsonProtocol {
 
-  implicit val orderIdFormat = new JsonFormat[AccountNumber] {
-    def write(orderId: AccountNumber) = JsString(orderId.value.toString)
+  implicit val accountNumberFormat = new JsonFormat[AccountNumber] {
+    def write(accountNumber: AccountNumber) = JsString(accountNumber.value.toString)
     def read(value: JsValue): AccountNumber = {
       value match {
-        case JsString(uuid) => AccountNumber(UUID.fromString(uuid))
+        case JsString(uuid) => AccountNumber(uuid.toLong)
         case _              => throw DeserializationException("Expected UUID string")
       }
     }
@@ -20,7 +18,7 @@ trait AccountJsonFormats extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val serverFormat = jsonFormat1(AccountHolder)
   implicit val tableFormat = jsonFormat1(Table)
   implicit val orderItemFormat = jsonFormat2(CreditAmount)
-  implicit val orderFormat = jsonFormat4(Account)
-  implicit val openOrderFormat = jsonFormat2(AccountActor.OpenAccount)
+  implicit val orderFormat = jsonFormat3(Account)
+  implicit val openOrderFormat = jsonFormat1(AccountActor.OpenAccount)
   implicit val addItemToOrderFormat = jsonFormat1(AccountActor.CreditAmountToAccount)
 }

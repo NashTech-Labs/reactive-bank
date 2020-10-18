@@ -60,7 +60,7 @@ class AccountDBO() {
 
   def apply(account: Account): AccountDBO = {
     id = account.id.value
-    accountHolderName = account.server.name
+    accountHolderName = account.accountHolder.name
     balance = new CreditAmountDBO().apply(new CreditAmount(id, account.balance))
 
     this
@@ -69,7 +69,7 @@ class AccountDBO() {
 
 class SQLAccountRepository()(implicit ec: ExecutionContext) extends AccountRepository {
 
-  private val entityManagerFactory = Persistence.createEntityManagerFactory("reactivebanking.Accounts")
+  private val entityManagerFactory = Persistence.createEntityManagerFactory("reactivebanking.accounts")
 
   private val threadLocalEntityManager = new ThreadLocal[EntityManager]()
 

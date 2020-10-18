@@ -1,14 +1,12 @@
 package com.reactivebank.accounts
 
-import java.util.UUID
-
 import akka.actor.ActorRef
-import akka.pattern.ask
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ExceptionHandler, Route}
+import akka.pattern.ask
 import akka.util.Timeout
-import com.reactivebank.accounts.AccountActor.{Envelope, GetAccount, AmountCreditedToAccount, AccountNotFoundException, AccountOpened}
+import com.reactivebank.accounts.AccountActor._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._

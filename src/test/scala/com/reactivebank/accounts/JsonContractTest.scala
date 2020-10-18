@@ -6,38 +6,34 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import org.scalatest.wordspec.AnyWordSpec
 import spray.json.JsonParser
 
-class JsonContractTest extends AnyWordSpec with ScalatestRouteTest with OrderHelpers {
-  class OrderSupervisor(repository: AccountRepository) extends Actor {
-    private def createOrderActor(orderId: AccountNumber) = {
-      context.actorOf(AccountActor.props(repository), orderId.value.toString)
+class JsonContractTest extends AnyWordSpec with ScalatestRouteTest with AccountHelpers {
+  class AccountSupervisor(repository: AccountRepository) extends Actor {
+    private def createAccountActor(accountNumber: AccountNumber) = {
+      context.actorOf(AccountActor.props(repository), accountNumber.value.toString)
     }
 
     override def receive = {
       case AccountActor.Envelope(recipient, message) =>
         context
           .child(recipient.value.toString)
-          .getOrElse(createOrderActor(recipient))
+          .getOrElse(createAccountActor(recipient))
           .forward(message)
     }
   }
 
-  val orderRepo = new InMemoryAccountRepository()
-  val orderActors = system.actorOf(Props(new OrderSupervisor(orderRepo)))
-  val orderRoutes = new AccountRoutes(orderActors)(system.dispatcher)
+  val accountRepo = new InMemoryAccountRepository()
+  val accountActors = system.actorOf(Props(new AccountSupervisor(accountRepo)))
+  val accountRoutes = new AccountRoutes(accountActors)(system.dispatcher)
 
-  "Creating an Order" should {
+  "Creating an Account" should {
     "Adhere to the Json Contract" in {
-      val server = generateServer()
-      val table = generateTable()
+      val accountHolder = generateAccountHolder()
 
       val request =
         s"""
           {
-            "server":{
-              "name": "${server.name}"
-            },
-            "table":{
-              "number": ${table.number}
+            "accountHolder":{
+              "name": "${accountHolder.name}"
             }
           }
         """
@@ -46,18 +42,15 @@ class JsonContractTest extends AnyWordSpec with ScalatestRouteTest with OrderHel
         s"""
           {
             "id":"ID",
-            "items":[],
-            "server":{
-              "name":"${server.name}"
-            },
-            "table":{
-              "number":${table.number}
+            "balance":0,
+            "accountHolder":{
+              "name":"${accountHolder.name}"
             }
           }
          """
 
-      val result = Post("/order")
-        .withEntity(ContentTypes.`application/json`, request) ~> orderRoutes.routes ~> runRoute
+      val result = Post("/account")
+        .withEntity(ContentTypes.`application/json`, request) ~> accountRoutes.routes ~> runRoute
 
       check {
         val json = JsonParser(
@@ -73,37 +66,24 @@ class JsonContractTest extends AnyWordSpec with ScalatestRouteTest with OrderHel
     }
   }
 
-  "Retrieving the Order" should {
+  "Retrieving the Account" should {
     "Adhere to the Json Contract" in {
-      val item1 = generateOrderItem()
-      val item2 = generateOrderItem()
-      val order = generateOrder(items = Seq(item1, item2))
-      orderRepo.update(order)
+      val creditAmount1 = generateCreditAmount()
+      val account = generateAccount(balance = creditAmount1)
+      accountRepo.update(account)
 
       val response =
         s"""
           {
-            "id":"${order.id.value.toString}",
-            "items":[
-              {
-                "name":"${item1.name}",
-                "specialInstructions":"${item1.specialInstructions}"
-              },
-              {
-                "name":"${item2.name}",
-                "specialInstructions":"${item2.specialInstructions}"
-              }
-            ],
-            "server":{
-              "name":"${order.server.name}"
-            },
-            "table":{
-              "number":${order.table.number}
+            "id":"${account.id.value.toString}",
+            "balance":${creditAmount1.amount},
+            "accountHolder":{
+              "name":"${account.accountHolder.name}"
             }
           }
          """
 
-      val result = Get(s"/order/${order.id.value.toString}") ~> orderRoutes.routes ~> runRoute
+      val result = Get(s"/account/${account.id.value.toString}") ~> accountRoutes.routes ~> runRoute
 
       check {
         val json = JsonParser(entityAs[String])
@@ -114,43 +94,32 @@ class JsonContractTest extends AnyWordSpec with ScalatestRouteTest with OrderHel
     }
   }
 
-  "Adding to an Order" should {
+  "Crediting to an Account" should {
     "Adhere to the Json Contract" in {
-      val item = generateOrderItem()
-      val order = generateOrder(items = Seq.empty)
-      orderRepo.update(order)
+      val creditAmount = generateCreditAmount()
+      val account = generateAccount(balance = creditAmount.copy(amount = 0D))
+      accountRepo.update(account)
 
       val request =
         s"""
           {
-            "item":{
-              "name":"${item.name}",
-              "specialInstructions":"${item.specialInstructions}"
-            }
+            "amount":${creditAmount.amount}
           }
         """
 
       val response =
         s"""
           {
-            "id":"${order.id.value.toString}",
-            "items":[
-              {
-                "name":"${item.name}",
-                "specialInstructions":"${item.specialInstructions}"
-              }
-            ],
-            "server":{
-              "name":"${order.server.name}"
-            },
-            "table":{
-              "number":${order.table.number}
+            "id":"${account.id.value.toString}",
+            "balance":${creditAmount.amount},
+            "accountHolder":{
+              "name":"${account.accountHolder.name}"
             }
           }
          """
 
-      val result = Post(s"/order/${order.id.value.toString}/items")
-        .withEntity(ContentTypes.`application/json`, request) ~> orderRoutes.routes ~> runRoute
+      val result = Post(s"/account/${account.id.value.toString}/amount")
+        .withEntity(ContentTypes.`application/json`, request) ~> accountRoutes.routes ~> runRoute
 
       check {
         val json = JsonParser(entityAs[String])

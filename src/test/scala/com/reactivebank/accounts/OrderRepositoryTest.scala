@@ -6,13 +6,13 @@ import org.scalatest.wordspec.AnyWordSpec
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait OrderRepositoryTest extends AnyWordSpec with OrderHelpers with ScalaFutures {
+trait OrderRepositoryTest extends AnyWordSpec with AccountHelpers with ScalaFutures {
   val orderRepo: AccountRepository
 
   "The repository" should {
     "be thread safe" in {
       val updateResults = Future.sequence((1 to 100).map { _ =>
-        val order = generateOrder()
+        val order = generateAccount()
         orderRepo.update(order)
       }).futureValue
 
@@ -26,21 +26,21 @@ trait OrderRepositoryTest extends AnyWordSpec with OrderHelpers with ScalaFuture
 
   "find" should {
     "return None if the repository is empty" in {
-      val orderId = generateOrderId()
+      val orderId = generateAccountNumber()
       val result = orderRepo.find(orderId).futureValue
 
       assert(result === None)
     }
     "return None if the repository is not empty, but the order doesn't exist" in {
-      (1 to 10).foreach(_ => orderRepo.update(generateOrder()).futureValue)
+      (1 to 10).foreach(_ => orderRepo.update(generateAccount()).futureValue)
 
-      val orderId = generateOrderId()
+      val orderId = generateAccountNumber()
       val result = orderRepo.find(orderId).futureValue
 
       assert(result === None)
     }
     "return the order if it is the only one in the repo" in {
-      val order = generateOrder()
+      val order = generateAccount()
 
       val updateResult = orderRepo.update(order).futureValue
       val findResult = orderRepo.find(order.id).futureValue
@@ -49,9 +49,9 @@ trait OrderRepositoryTest extends AnyWordSpec with OrderHelpers with ScalaFuture
       assert(findResult === Some(order))
     }
     "return the correct order when there is more than one in the repo" in {
-      (1 to 10).foreach(_ => orderRepo.update(generateOrder()).futureValue)
+      (1 to 10).foreach(_ => orderRepo.update(generateAccount()).futureValue)
 
-      val order = generateOrder()
+      val order = generateAccount()
 
       val updateResult = orderRepo.update(order).futureValue
       val findResult = orderRepo.find(order.id).futureValue
@@ -60,8 +60,8 @@ trait OrderRepositoryTest extends AnyWordSpec with OrderHelpers with ScalaFuture
       assert(findResult === Some(order))
     }
     "return each correct order when there is more than one in the repo" in {
-      val order1 = generateOrder()
-      val order2 = generateOrder()
+      val order1 = generateAccount()
+      val order2 = generateAccount()
 
       orderRepo.update(order1).futureValue
       orderRepo.update(order2).futureValue
@@ -76,7 +76,7 @@ trait OrderRepositoryTest extends AnyWordSpec with OrderHelpers with ScalaFuture
 
   "update" should {
     "add the order to the repo if it doesn't exist" in {
-      val order = generateOrder()
+      val order = generateAccount()
 
       val updateResult = orderRepo.update(order).futureValue
       val findResult = orderRepo.find(order.id).futureValue
@@ -85,8 +85,8 @@ trait OrderRepositoryTest extends AnyWordSpec with OrderHelpers with ScalaFuture
       assert(findResult === Some(order))
     }
     "overwrite the order if it already exists" in {
-      val order = generateOrder()
-      val updated = order.addBalance(generateOrderItem())
+      val order = generateAccount()
+      val updated = order.addBalance(generateCreditAmount())
 
       val insertResult = orderRepo.update(order).futureValue
       val updateResult = orderRepo.update(updated).futureValue
