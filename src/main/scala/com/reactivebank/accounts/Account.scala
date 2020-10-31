@@ -3,7 +3,7 @@ package com.reactivebank.accounts
 import scala.util.Random
 
 object AccountNumber {
-  def apply(): AccountNumber = AccountNumber(Random.nextLong())
+  def apply(): AccountNumber = AccountNumber(Random.nextLong(Long.MaxValue))
 }
 
 case class AccountNumber(value: Long)

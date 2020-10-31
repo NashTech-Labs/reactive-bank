@@ -32,7 +32,7 @@ class JsonContractTest extends AnyWordSpec with ScalatestRouteTest with AccountH
       val request =
         s"""
           {
-            "accountHolder":{
+            "accountHolderName":{
               "name": "${accountHolder.name}"
             }
           }
@@ -42,7 +42,7 @@ class JsonContractTest extends AnyWordSpec with ScalatestRouteTest with AccountH
         s"""
           {
             "id":"ID",
-            "balance":0,
+            "balance":0.0,
             "accountHolder":{
               "name":"${accountHolder.name}"
             }
@@ -68,22 +68,25 @@ class JsonContractTest extends AnyWordSpec with ScalatestRouteTest with AccountH
 
   "Retrieving the Account" should {
     "Adhere to the Json Contract" in {
-      val creditAmount1 = generateCreditAmount()
-      val account = generateAccount(balance = creditAmount1)
+      val creditAmount = generateCreditAmount()
+      val account =
+        generateAccount(
+          accountNumber = AccountNumber(creditAmount.accountNumber),
+          balance = creditAmount)
       accountRepo.update(account)
 
       val response =
         s"""
           {
-            "id":"${account.id.value.toString}",
-            "balance":${creditAmount1.amount},
+            "id":"${account.id.value}",
+            "balance":${creditAmount.amount},
             "accountHolder":{
               "name":"${account.accountHolder.name}"
             }
           }
          """
 
-      val result = Get(s"/account/${account.id.value.toString}") ~> accountRoutes.routes ~> runRoute
+      val result = Get(s"/account/${account.id.value}") ~> accountRoutes.routes ~> runRoute
 
       check {
         val json = JsonParser(entityAs[String])
@@ -97,20 +100,26 @@ class JsonContractTest extends AnyWordSpec with ScalatestRouteTest with AccountH
   "Crediting to an Account" should {
     "Adhere to the Json Contract" in {
       val creditAmount = generateCreditAmount()
-      val account = generateAccount(balance = creditAmount.copy(amount = 0D))
+      val account =
+        generateAccount(
+          accountNumber = AccountNumber(creditAmount.accountNumber),
+          balance = creditAmount.copy(amount = 0D))
       accountRepo.update(account)
 
       val request =
         s"""
           {
-            "amount":${creditAmount.amount}
+            "creditAmount": {
+              "accountNumber":${creditAmount.accountNumber},
+              "amount":${creditAmount.amount}
+             }
           }
         """
 
       val response =
         s"""
           {
-            "id":"${account.id.value.toString}",
+            "id":"${account.id.value}",
             "balance":${creditAmount.amount},
             "accountHolder":{
               "name":"${account.accountHolder.name}"

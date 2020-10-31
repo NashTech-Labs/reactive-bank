@@ -6,14 +6,13 @@ import akka.cluster.sharding.ShardRegion.{ExtractEntityId, ExtractShardId}
 import akka.pattern.pipe
 
 import scala.concurrent.Future
-import scala.util.Random
 
 object AccountActor {
   sealed trait Command extends SerializableMessage
 
   case class OpenAccount(accountHolderName: AccountHolder) extends Command
   case class AccountOpened(account: Account) extends SerializableMessage
-  case class CreditAmountToAccount(item: CreditAmount) extends Command
+  case class CreditAmountToAccount(creditAmount: CreditAmount) extends Command
   case class AmountCreditedToAccount(account: Account) extends SerializableMessage
   case class GetAccount() extends Command
 
@@ -40,13 +39,24 @@ class AccountActor(repository: AccountRepository) extends Actor with ActorLoggin
   import AccountActor._
   import context.dispatcher
 
-  private val accountNumber: AccountNumber = AccountNumber(Random.nextLong())
+  private val accountNumber: AccountNumber = AccountNumber(context.self.path.name.toLong)
 
   private var state: Option[Account] = None
 
   repository.find(accountNumber).map(AccountLoaded.apply).pipeTo(self)
 
   override def receive: Receive = loading
+
+  private def loading: Receive = {
+    case AccountLoaded(account) =>
+      unstashAll()
+      state = account
+      context.become(running)
+    case Status.Failure(ex) =>
+      log.error(ex, s"{$accountNumber} FAILURE: ${ex.getMessage}")
+      throw ex
+    case _ => stash()
+  }
 
   private def running: Receive = {
     case OpenAccount(accountHolderName) =>
@@ -92,17 +102,6 @@ class AccountActor(repository: AccountRepository) extends Actor with ActorLoggin
     case failure @ Status.Failure(ex) =>
       log.error(ex, s"{$accountNumber} FAILURE: ${ex.getMessage}")
       sender() ! failure
-      throw ex
-    case _ => stash()
-  }
-
-  private def loading: Receive = {
-    case AccountLoaded(account) =>
-      unstashAll()
-      state = account
-      context.become(running)
-    case Status.Failure(ex) =>
-      log.error(ex, s"{$accountNumber} FAILURE: ${ex.getMessage}")
       throw ex
     case _ => stash()
   }

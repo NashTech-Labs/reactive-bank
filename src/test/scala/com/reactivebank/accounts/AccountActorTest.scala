@@ -150,7 +150,10 @@ class AccountActorTest extends AnyWordSpec with AkkaSpec with AccountHelpers {
       parent.expectTerminated(accountActor)
     }
     "not allow further interactions while it's in progress" in new TestContext() {
-      val account = generateAccount(accountNumber = accountNumber)
+      val account =
+        generateAccount(
+          accountNumber = accountNumber,
+          balance = CreditAmount(accountNumber.value, 0D))
 
       repo.mockUpdate {
         order => Future {

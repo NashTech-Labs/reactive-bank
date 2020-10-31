@@ -7,10 +7,10 @@ trait AccountHelpers {
   private val rndInts = (1 to 10000).map(_ => rnd.nextInt(1000000)).toSet.iterator
 
   def generateAccountNumber(): AccountNumber = AccountNumber()
-  def generateAccountHolder(): AccountHolder = AccountHolder("ServerName"+rndInts.next())
+  def generateAccountHolder(): AccountHolder = AccountHolder("AccountHolderName"+rndInts.next())
 
   def generateCreditAmount(
-                            accountNumber: Long = rnd.nextLong(),
+                            accountNumber: Long = rnd.nextLong(Long.MaxValue),
                             amount: Double = rnd.nextDouble()
   ): CreditAmount = {
     CreditAmount(

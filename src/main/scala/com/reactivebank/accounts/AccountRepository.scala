@@ -52,7 +52,6 @@ class AccountDBO() {
 
   private var accountHolderName: String = _
 
-  @ElementCollection(targetClass = classOf[CreditAmountDBO])
   private var balance: CreditAmountDBO = _
 
   def getAccountHolderName: String = accountHolderName
@@ -69,7 +68,7 @@ class AccountDBO() {
 
 class SQLAccountRepository()(implicit ec: ExecutionContext) extends AccountRepository {
 
-  private val entityManagerFactory = Persistence.createEntityManagerFactory("reactivebanking.accounts")
+  private val entityManagerFactory = Persistence.createEntityManagerFactory("reactivebank.Accounts")
 
   private val threadLocalEntityManager = new ThreadLocal[EntityManager]()
 

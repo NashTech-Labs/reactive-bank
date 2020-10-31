@@ -17,8 +17,8 @@ trait AccountJsonFormats extends SprayJsonSupport with DefaultJsonProtocol {
 
   implicit val serverFormat = jsonFormat1(AccountHolder)
   implicit val tableFormat = jsonFormat1(Table)
-  implicit val orderItemFormat = jsonFormat2(CreditAmount)
-  implicit val orderFormat = jsonFormat3(Account)
+  implicit val creditAmountFormat = jsonFormat2(CreditAmount)
+  implicit val accountFormat = jsonFormat3(Account)
   implicit val openOrderFormat = jsonFormat1(AccountActor.OpenAccount)
-  implicit val addItemToOrderFormat = jsonFormat1(AccountActor.CreditAmountToAccount)
+  implicit val creditAmountToAccountFormat = jsonFormat1(AccountActor.CreditAmountToAccount)
 }
