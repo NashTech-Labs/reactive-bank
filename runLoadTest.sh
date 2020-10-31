@@ -2,4 +2,4 @@
 
 set -x
 
-sbt "runMain com.reactivebbq.orders.LoadTest -Dcinnamon.prometheus.http-server.port=9004"
+sbt "runMain com.reactivebank.accounts.LoadTest -Dcinnamon.prometheus.http-server.port=9004"

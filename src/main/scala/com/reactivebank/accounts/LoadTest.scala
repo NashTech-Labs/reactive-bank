@@ -117,7 +117,7 @@ object LoadTest extends App {
 
   val config = ConfigFactory.load("loadtest.conf")
 
-  val ports = config.getIntList("reactive-banking.account.ports")
+  val ports = config.getIntList("reactive-bank.accounts.ports")
     .asScala
     .map(_.intValue())
     .toList

@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 import akka.http.scaladsl.Http
 import akka.management.scaladsl.AkkaManagement
+import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
 
 object Main extends App {
@@ -33,5 +34,9 @@ object Main extends App {
 
   val accountRoutes = new AccountRoutes(accounts)(system.dispatcher)
 
-  Http().newServerAt("localhost", 8558).bindFlow(accountRoutes.routes)
+  val config = ConfigFactory.load()
+
+  Http()
+    .newServerAt("localhost", config.getInt("akka.http.server.default-http-port"))
+    .bindFlow(accountRoutes.routes)
 }

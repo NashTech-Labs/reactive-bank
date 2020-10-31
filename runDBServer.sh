@@ -2,4 +2,4 @@
 
 set -x
 
-sbt "runMain com.reactivebbq.orders.H2Database"
+sbt "runMain com.reactivebank.accounts.H2Database"

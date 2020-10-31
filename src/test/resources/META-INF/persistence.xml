@@ -3,7 +3,7 @@
              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd"
              version="2.1">
 
-    <persistence-unit name="reactivebbq.Orders" transaction-type="RESOURCE_LOCAL">
+    <persistence-unit name="reactivebank.Accounts" transaction-type="RESOURCE_LOCAL">
         <class>com.reactivebbq.orders.OrderDBO</class>
 
         <properties>
